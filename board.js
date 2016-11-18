@@ -59,7 +59,7 @@ Board.prototype.getBoard = function() {
   "\t\t12|" + " " + boardArray[12][0]  + " " + boardArray[12][1]  + " " + boardArray[12][2]  + " " + boardArray[12][3]  + " " + boardArray[12][4]  + " " + boardArray[12][5]  + " " + boardArray[12][6]  + " " + boardArray[12][7]  + " " + boardArray[12][8]  + " " + boardArray[12][9]  + " " + boardArray[12][10]  + " " + boardArray[12][11]  + " " + boardArray[12][12]  + " " + boardArray[12][13]  + " " + boardArray[12][14] + "|12" + "\n" +
   "\t\t13|" + " " + boardArray[13][0]  + " " + boardArray[13][1]  + " " + boardArray[13][2]  + " " + boardArray[13][3]  + " " + boardArray[13][4]  + " " + boardArray[13][5]  + " " + boardArray[13][6]  + " " + boardArray[13][7]  + " " + boardArray[13][8]  + " " + boardArray[13][9]  + " " + boardArray[13][10]  + " " + boardArray[13][11]  + " " + boardArray[13][12]  + " " + boardArray[13][13]  + " " + boardArray[13][14] + "|13        Scores" + "\n" +
   "\t\t14|" + " " + boardArray[14][0]  + " " + boardArray[14][1]  + " " + boardArray[14][2]  + " " + boardArray[14][3]  + " " + boardArray[14][4]  + " " + boardArray[14][5]  + " " + boardArray[14][6]  + " " + boardArray[14][7]  + " " + boardArray[14][8]  + " " + boardArray[14][9]  + " " + boardArray[14][10]  + " " + boardArray[14][11]  + " " + boardArray[14][12]  + " " + boardArray[14][13]  + " " + boardArray[14][14] + "|14    --------------" + "\n" +
-  "\t\t   -----------------------------         "+ p1.name + ": " + p1.totalScore() + "\n" +
+  "\t\t   -----------------------------          "+ p1.name + ": " + p1.totalScore() + "\n" +
   "\t\t    a b c d e f g h i j k l m n o         "+ p2.name + ": " + p2.totalScore() + "\n\n";
 
   return board

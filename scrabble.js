@@ -334,7 +334,7 @@ console.log((oldTiles == newTiles) + ' == true');
 
 // Game: Tests //
 console.log("\n **------ Game Tests ------** ");
-var game1 = new Game("Jeannie", "Brent");
+var game1 = new Game("Chris", "Jamie");
 game1.playGame();
 
 
