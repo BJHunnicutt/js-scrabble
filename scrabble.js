@@ -125,8 +125,16 @@ var Player = function(name, tileBagClass = new TileBag()) {
 
     Player.prototype.dumpTiles = function() {
       this.playerTiles = [];
-      this.draw_tiles();
+      this.drawTiles();
       // Should put the tiles back in the bag (if we come back to this later)
+    };
+
+    Player.prototype.updatePlayerTiles = function(word) {
+      var letters = word.toUpperCase().split('');
+      for (let letter of letters) {
+        this.playerTiles.splice(this.playerTiles.indexOf(letter), 1);
+      }
+      this.drawTiles()
     };
 
 
@@ -140,166 +148,138 @@ var Player = function(name, tileBagClass = new TileBag()) {
       this.p2 = new Player(name2, this.t1);
       this.b1 = new Board(this.p1, this.p2);
       this.firstTurn = true;
-      this.isWaiting = false;
+      this.turn = "player1";
       this._word = "";
+      this._direction = "";
+      this._startPosition = "";
+      this.alert = "";
     };
 
     // Display the current board
-    Game.prototype.displayBoard = function(word, start_position, direction) {
-      return this.b1.fill(word, start_position, direction);
+    Game.prototype.displayBoard = function(word, startPosition, direction) {
+      return this.b1.fill(word, startPosition, direction);
     };
 
 
     // playGame(): Goes back and forth having 2 players play words until someone wins
-    Game.prototype.playGame = function(turn = "player1") {
-      var wordScore = true;
+    Game.prototype.playGame = function() {
+      console.log("playGame " + this.turn);
 
-      console.log( this.displayBoard(this.b1.boardArray[0][0], "0A", "right") ); //This just replaces the symbol at the center when it displays the board the first time.
+      console.log( this.displayBoard(this.b1.boardArray[0][0], "0A", "h") ); //This just replaces the symbol at the center when it displays the board the first time.
 
-      var [turn, wordScore] = this.switchPlayers(turn, wordScore);
-
-      // // Go back and forth playing words until someone wins
-      // do {
-      //   if (turn == "player1") {
-      //     wordScore = this.move(this.p1);
-      //     turn = "player2";
-      //   }
-      //   else if (turn == "player2") {
-      //     wordScore = this.move(this.p2);
-      //     turn = "player1";
-      //   }
-      // } while (wordScore !== false); // wordScore will be false if a player has won
+      var wordScore = this.movePlayers();
 
       // console.log(wordScore);
       if (wordScore === false) {
         console.log("Wow, " + this.p1.name + "! Your score is " + this.p1.total_score + "! Looks like you won! :D");
       }
-      else if (wordScore !== true){
-        this.playGame(turn);
-      }
     };
 
-    Game.prototype.switchPlayers = function(turn, wordScore) {
-      // wordScore = true;
-      // Go back and forth playing words until someone wins
-      if (turn == "player1") {
-        wordScore = this.move(this.p1);
-        turn = "player2";
+    Game.prototype.movePlayers = function(wordScore = true) {
+      if (this.turn == "player1") {
+        var player = this.p1;
       }
-      else if (turn == "player2") {
-        wordScore = this.move(this.p2);
-        turn = "player1";
-      }
-      return [turn, wordScore];
-    };
-
-
-    Game.prototype.move = function(player) {
-      // if (this.isWaiting === true) {
-      //   var word = "";
-      // }
-
-      if (this.isWaiting === false) {
-        // var word = "";
-        console.log("\n\t\t\t *** " + player.name.toUpperCase() + "'s Turn ***\n\n");
-        var [word, startPosition, direction] = this.getWord();
-        this._word = word;
+      else if (this.turn == "player2") {
+        var player = this.p2;
       }
 
-      if ((typeof this._word != "undefined") && this._word.length > 0) {
-        console.log(this._word + startPosition + direction);
-        console.log("Here");
-        this.checkWord(player, this._word);
-        this.isWaiting = false;
+      console.log("\n\t\t\t *** " + player.name.toUpperCase() + "'s Turn ***\t" + this.alert + "\n\n");
+      this.alert = "";
 
-        return this.s1.score(this._word);
-      }
-      else {
-        return true;
-      }
+      // Prompt usage details:
+      // https://docs.nodejitsu.com/articles/command-line/how-to-prompt-for-command-line-input/
+      console.log("| In the prompts below: \n" +
+      " ------------------------------------------------------------------------------\n" +
+      "|      WORD: Enter a word (or type Q to quit / D to dump tiles)                |\n" +
+      "|     START: Enter the starting location of your word (e.g 0A)                 |\n" +
+      "| DIRECTION: Enter whether to place the word horizontally or vertically? (h/v) |\n" +
+      " ------------------------------------------------------------------------------");
+      prompt.get(['word', 'startPosition', 'direction'], this.getWord);
+
+      return wordScore;
     };
 
 
     // Collet the word to play
-    Game.prototype.getWord = function() {
-      this.isWaiting = true;
-
-      var word = "";
-      var startPosition = "";
-      var direction = "";
-      // Prompt usage details:
-      // https://docs.nodejitsu.com/articles/command-line/how-to-prompt-for-command-line-input/
-      // console.log("| In the prompts below: \n" +
-      // "| WORD: Enter a word (type Q to quit / D to dump tiles) \n" +
-      // "| START POSITION: Enter the starting location of your word (e.g 0A) \n" +
-      // "| DIRECTION: Enter whether to place the word horizontally or vertically? (h/v) \n" +
-      // " ______________________________________________________________________________ ");
-
-      prompt.get(['word', 'startPosition', 'direction'], function (err, result) {
-        if (err) { return onErr(err); }
-        var word = result.word;
-        var direction = result.direction;
-        var startPosition = result.startPosition;
-      });
+    Game.prototype.getWord = function(err, result) { //The function called by prompt does not have access to "this." variables
+      // Error handling
+      if (err) { return onErr(err); }
       function onErr(err) {console.log(err); return 1; }
+      // set variables
+      var word = result.word;
+      var direction = result.direction;
+      var startPosition = result.startPosition;
 
-      // if (this.firstTurn === true) {
-      //     console.log("\nThe first turn must begin on 7H\n");
-      //     startPosition = "7H";
-      // }
-      isPaused = false;
-      return [word, startPosition, direction];
+      game1.checkWord(word, startPosition, direction);  ///WHYYYYY won't it recognize this function?????
     };
-
-    // // Collet the startPosition of the play
-    // Game.prototype.getStartPosition = function() {
-    //   var startPosition = "";
-    //   //  Get the start position of the word (default to center on first turn)
-    //   if (this.firstTurn === true) {
-    //     startPosition = "7H";
-    //     //  Actually should check if spaces_covered includes 7H...
-    //     //  if not.. puts "Sorry, the first word must cover the center space (7H), try again: "
-    //   }
-    //   else {
-    //     console.log("\nEnter the start position of your word (e.g 0A): ");
-    //     prompt.get(['startPosition'], function (err, result) {
-    //       if (err) { return onErr(err); }
-    //       startPosition = result.startPosition;
-    //     });
-    //   }
-    //   function onErr(err) {console.log(err); return 1; }
-    //   return startPosition;
-    // };
-    //
-    //
-    // // Collet the direction of the play
-    // Game.prototype.getDirection = function() {
-    //   var direction = "";
-    //
-    //   console.log("\nDo you want to place the word horizontally or vertically? (h/v): ");
-    //   if (direction === "") {
-    //     prompt.get(['direction'], function (err, result) {
-    //       if (err) { return onErr(err); }
-    //       direction = result.direction;
-    //     });
-    //   }
-    //   function onErr(err) {console.log(err); return 1; }
-    //   return direction;
-    // };
 
 
     // Check if the player wants to quit or dunp their tiles
-    Game.prototype.checkWord = function(player, word) {
-      if (word == "Q") {
+    Game.prototype.checkWord = function(word, startPosition, direction) {
+      this._word = word;
+      this._direction = direction;
+      if (this.firstTurn === true) {
+        var startPosition = "7H";
+        this.alert = "\n\n\t     (Note: The first word must be placed on 7H)";
+        this.firstTurn = false;
+      }
+      this._startPosition = startPosition;
+      // console.log("Word: " + this._word + "Direction: " + this._direction + "startPosition: " + this._startPosition);
+
+      if (this.turn == "player1") {
+        player = this.p1;
+      }
+      else if (this.turn == "player2") {
+        player = this.p2;
+      }
+
+      // If the player selected to Quit or Dump tiles
+      if (word.toUpperCase() == "Q") {
         return;
       }
-      else if (word == "D") {
-        player.dump_tiles();
-        console.log("\n\nHere are new tiles! Your turn is over!\n");
-        console.log(this.display_board(this.b1.boardArray[0][0], "0A", "right"));
-        return true;
+      else if (word.toUpperCase() == "D") {
+        player.dumpTiles();
+        console.log("\n\n\t\t Here are new tiles "+ player.name +"! Your turn is over!");
+        // console.log(this.displayBoard(this._word, this._startPosition, this._direction));
+        this.alert = "";
       }
-      return word;
+
+      // determine if the word is ok
+      if ((this._word.toUpperCase() != "D") && this._word.length > 0) {
+        // Switching players if word is good
+        if (this.turn == "player1") {
+          score = player.play(word);
+          player.updatePlayerTiles(word);
+          this.turn = "player2";
+          console.log(this.displayBoard(this._word, this._startPosition, this._direction));
+        }
+        else if (this.turn == "player2") {
+          score = player.play(word);
+          player.updatePlayerTiles(word);
+          this.turn = "player1";
+          console.log( this.displayBoard(this._word, this._startPosition, this._direction) );
+        }
+        // THis should make it keep looping through players until theres a winner...
+        this.movePlayers();
+      }
+      else if (this._word.toUpperCase() === "D") {
+        // Switching players if they just dumped
+        if (this.turn == "player1") {
+          this.turn = "player2";
+          console.log( this.displayBoard(this.b1.boardArray[0][0], "0A", "h") );
+        }
+        else if (this.turn == "player2") {
+          this.turn = "player1";
+          console.log( this.displayBoard(this.b1.boardArray[0][0], "0A", "h") );
+        }
+        this.movePlayers();
+      }
+      else {
+        // If the word is not admissable, ask for a new word.
+        this.movePlayers();
+      }
+      // var score = this.s1.score(this._word);
+      // return [word, startPosition, direction];
     };
 
 
@@ -354,7 +334,7 @@ console.log((oldTiles == newTiles) + ' == true');
 
 // Game: Tests //
 console.log("\n **------ Game Tests ------** ");
-var game1 = new Game("Chris", "Jamie");
+var game1 = new Game("Jeannie", "Brent");
 game1.playGame();
 
 

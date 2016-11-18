@@ -43,7 +43,7 @@ Board.prototype.getBoard = function() {
   "  ╚════██║██║     ██╔══██╗██╔══██║██╔══██╗██╔══██╗██║     ██╔══╝     ██   ██║╚════██║\n" +
   "  ███████║╚██████╗██║  ██║██║  ██║██████╔╝██████╔╝███████╗███████╗██╗╚█████╔╝███████║\n" +
   "  ╚══════╝ ╚═════╝╚═╝  ╚═╝╚═╝  ╚═╝╚═════╝ ╚═════╝ ╚══════╝╚══════╝╚═╝ ╚════╝ ╚══════╝\n\n\n" +
-  "\t\t   a b c d e f g h i j k l m n o     ---------------------" + "\n" +
+  "\t\t    a b c d e f g h i j k l m n o     ---------------------" + "\n" +
   "\t\t 0|" + " " + boardArray[0][0]  + " " + boardArray[0][1]  + " " + boardArray[0][2]  + " " + boardArray[0][3]  + " " + boardArray[0][4]  + " " + boardArray[0][5]  + " " + boardArray[0][6]  + " " + boardArray[0][7]  + " " + boardArray[0][8]  + " " + boardArray[0][9]  + " " + boardArray[0][10]  + " " + boardArray[0][11]  + " " + boardArray[0][12]  + " " + boardArray[0][13]  + " " + boardArray[0][14] + "|0        " + p1.name + "'s" + "\n" +
   "\t\t 1|" + " " + boardArray[1][0]  + " " + boardArray[1][1]  + " " + boardArray[1][2]  + " " + boardArray[1][3]  + " " + boardArray[1][4]  + " " + boardArray[1][5]  + " " + boardArray[1][6]  + " " + boardArray[1][7]  + " " + boardArray[1][8]  + " " + boardArray[1][9]  + " " + boardArray[1][10]  + " " + boardArray[1][11]  + " " + boardArray[1][12]  + " " + boardArray[1][13]  + " " + boardArray[1][14] + "|1         TILES:" + "\n" +
   "\t\t 2|" + " " + boardArray[2][0]  + " " + boardArray[2][1]  + " " + boardArray[2][2]  + " " + boardArray[2][3]  + " " + boardArray[2][4]  + " " + boardArray[2][5]  + " " + boardArray[2][6]  + " " + boardArray[2][7]  + " " + boardArray[2][8]  + " " + boardArray[2][9]  + " " + boardArray[2][10]  + " " + boardArray[2][11]  + " " + boardArray[2][12]  + " " + boardArray[2][13]  + " " + boardArray[2][14] + "|2    |---------------|" + "\n" +
@@ -59,8 +59,8 @@ Board.prototype.getBoard = function() {
   "\t\t12|" + " " + boardArray[12][0]  + " " + boardArray[12][1]  + " " + boardArray[12][2]  + " " + boardArray[12][3]  + " " + boardArray[12][4]  + " " + boardArray[12][5]  + " " + boardArray[12][6]  + " " + boardArray[12][7]  + " " + boardArray[12][8]  + " " + boardArray[12][9]  + " " + boardArray[12][10]  + " " + boardArray[12][11]  + " " + boardArray[12][12]  + " " + boardArray[12][13]  + " " + boardArray[12][14] + "|12" + "\n" +
   "\t\t13|" + " " + boardArray[13][0]  + " " + boardArray[13][1]  + " " + boardArray[13][2]  + " " + boardArray[13][3]  + " " + boardArray[13][4]  + " " + boardArray[13][5]  + " " + boardArray[13][6]  + " " + boardArray[13][7]  + " " + boardArray[13][8]  + " " + boardArray[13][9]  + " " + boardArray[13][10]  + " " + boardArray[13][11]  + " " + boardArray[13][12]  + " " + boardArray[13][13]  + " " + boardArray[13][14] + "|13        Scores" + "\n" +
   "\t\t14|" + " " + boardArray[14][0]  + " " + boardArray[14][1]  + " " + boardArray[14][2]  + " " + boardArray[14][3]  + " " + boardArray[14][4]  + " " + boardArray[14][5]  + " " + boardArray[14][6]  + " " + boardArray[14][7]  + " " + boardArray[14][8]  + " " + boardArray[14][9]  + " " + boardArray[14][10]  + " " + boardArray[14][11]  + " " + boardArray[14][12]  + " " + boardArray[14][13]  + " " + boardArray[14][14] + "|14    --------------" + "\n" +
-  "\t\t   -----------------------------         "+ p1.name + ": " + p1.total_score + "\n" +
-  "\t\t   a b c d e f g h i j k l m n o         "+ p2.name + ": " + p2.total_score + "\n\n";
+  "\t\t   -----------------------------         "+ p1.name + ": " + p1.totalScore() + "\n" +
+  "\t\t    a b c d e f g h i j k l m n o         "+ p2.name + ": " + p2.totalScore() + "\n\n";
 
   return board
 };
@@ -68,11 +68,11 @@ Board.prototype.getBoard = function() {
 Board.prototype.cleanUpInput = function(word, startPosition, direction) {
   var positionArray = [];
   if (startPosition.length > 2) {
-    letter = startPosition[2];
+    letter = startPosition[2].toUpperCase();
     positionArray[0] = startPosition.substr(0,2);
   }
   else {
-    letter = startPosition[1];
+    letter = startPosition[1].toUpperCase();
     positionArray[0] = startPosition[0];
   }
 
@@ -136,9 +136,9 @@ Board.prototype.cleanUpInput = function(word, startPosition, direction) {
 
 
 // Place the word in the board array variable in the correct place/orientation
-Board.prototype.fill = function(word, start_position, direction) {
+Board.prototype.fill = function(word, startPosition, direction) {
   // check_coverage(word, start_position, direction)
-  [word, v, h] = this.cleanUpInput(word, start_position, direction);
+  [word, v, h] = this.cleanUpInput(word, startPosition, direction);
   var letters = word.split("");
 
   for (let letter of letters) {
