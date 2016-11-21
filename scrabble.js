@@ -4,7 +4,7 @@
 // Helpful description of exporting modules: https://www.sitepoint.com/understanding-module-exports-exports-node-js/
 var TileBag = require("./tileBag.js");
 var Board = require("./board.js");
-
+// var Player = require("./player.js");
 
 var prompt = require('prompt');
 //start the prompt
@@ -36,13 +36,17 @@ var Scrabble = function() {};
     };
 
     // score(word): returns the total score value for the given word
-    Scrabble.prototype.score = function(word) {
+    Scrabble.prototype.score = function(word, tiles = []) {
+      if (tiles === []) {
+        tiles = word.split('');
+      }
       var score = 0;
       for (var i = 0, len = word.length; i < len; i++) {
         score = score + this.letterScore(word[i]);
       }
+
       // 7-letter word bonus
-      if (len == 7) {score = score + 50;}
+      if (len == 8) {score = score + 50;}
       return score;
     };
 
@@ -82,7 +86,8 @@ var Player = function(name, tileBagClass = new TileBag()) {
       }
       else {
         this.plays = this.plays.concat(word);
-        return this.game.score(word)
+
+        return this.game.score(word, this.playerTiles)
       }
     };
 
@@ -132,7 +137,9 @@ var Player = function(name, tileBagClass = new TileBag()) {
     Player.prototype.updatePlayerTiles = function(word) {
       var letters = word.toUpperCase().split('');
       for (let letter of letters) {
-        this.playerTiles.splice(this.playerTiles.indexOf(letter), 1);
+        if (this.playerTiles.includes(letter)) {
+          this.playerTiles.splice(this.playerTiles.indexOf(letter), 1);
+        }
       }
       this.drawTiles()
     };
@@ -214,24 +221,24 @@ var Player = function(name, tileBagClass = new TileBag()) {
     };
 
 
-    // Check if the player wants to quit or dunp their tiles
+    // Check if the word and placement is valid
     Game.prototype.checkWord = function(word, startPosition, direction) {
+      if (this.turn == "player1") {
+        var player = this.p1;
+      }
+      else if (this.turn == "player2") {
+        var player = this.p2;
+      }
+
       this._word = word;
       this._direction = direction;
       if (this.firstTurn === true) {
         var startPosition = "7H";
         this.alert = "\n\n\t     (Note: The first word must be placed on 7H)";
-        this.firstTurn = false;
+        // this.firstTurn = false;
       }
       this._startPosition = startPosition;
-      // console.log("Word: " + this._word + "Direction: " + this._direction + "startPosition: " + this._startPosition);
-
-      if (this.turn == "player1") {
-        player = this.p1;
-      }
-      else if (this.turn == "player2") {
-        player = this.p2;
-      }
+      console.log("Word: " + this._word + " Direction: " + this._direction + " startPosition: " + this._startPosition + "\n");
 
       // If the player selected to Quit or Dump tiles
       if (word.toUpperCase() == "Q") {
@@ -244,18 +251,128 @@ var Player = function(name, tileBagClass = new TileBag()) {
         this.alert = "";
       }
 
+      [placementValid, overlappingTiles] = this.checkPlacement();
+      // console.log("checkWord - valid?: " + letters + " overlappingTiles " + overlappingTiles + "\n");
+      lettersValid = this.lettersAvailable(overlappingTiles);
+
+      if (placementValid === true && lettersValid === true) {
+        this.finishTurn();
+      }
+      else {
+        // Start the turn over until they play a valid word
+        console.log( this.displayBoard(this.b1.boardArray[0][0], "0A", "h") );
+        this.movePlayers();
+      }
+    };
+
+
+    Game.prototype.checkPlacement = function() {
+      // Check if the word fits with the existing tiles on the board
+      var placementValid = false;
+
+      if (this._word === "D" || this._word === "Q") {
+        var placementValid = true;
+        var overlappingTiles = [];
+      }
+      else {
+        [letters, letterLocations, locationContents] = this.b1.checkCoverage(this._word, this._startPosition, this._direction);
+
+        // are there overlapping letters that are in our word? if not you can't play here (if its not the first turn)
+        var placementValidArray = [];
+        var overlappingTiles = [];
+
+        var alphabet = 'abcdefghijklmnopqrstuvwxyz'.toUpperCase().split('');
+        var i = 0;
+        for (let letter of letters) {
+          if (letters.includes(locationContents[i])) {
+            if (locationContents[i] === letter) {
+              placementValidArray[i] = true;
+              overlappingTiles = overlappingTiles.concat(letter);
+            }
+            else if (locationContents[i] != letter) {
+              placementValidArray[i] = false;
+            }
+          }
+          else {
+            placementValidArray[i] = null;
+          }
+          i = i+1;
+        }
+        // THey must play on another word, but they must align with the letters on the board
+        if (placementValidArray.includes(true) && !placementValidArray.includes(false)) {
+          placementValid = true;
+        }
+        else if (this.firstTurn === true) {
+          placementValid = true;
+          placementValidArray = [];
+          this.firstTurn = false;
+        }
+        else {
+          this.alert = "\n\n\t     That doesn't fit on the board. Follow the rules and try again!";
+        }
+      return [placementValid, overlappingTiles];
+    }
+  };
+
+
+    Game.prototype.lettersAvailable = function(overlappingTiles) {
+      console.log("overlappingTiles: " + overlappingTiles);
+      if (this.turn == "player1") {
+        var player = this.p1;
+      }
+      else if (this.turn == "player2") {
+        var player = this.p2;
+      }
+
+      // Check if word contains only available letters
+      var word2 = this._word.toUpperCase();
+      var availableTiles = player.playerTiles;
+      var availableTiles = availableTiles.concat(overlappingTiles);
+
+      for (var i = 0, len = availableTiles.length; i < len; i++) {
+        word2 = word2.replace(availableTiles[i],'');
+      }
+
+      if (this._word === "D" || this._word === "Q") {
+        var lettersValid = true;
+      }
+      //if all the letters are either in the players tiles or on the board
+      else if (word2.length === 0) {
+        var lettersValid = true;
+      }
+      else if (word2.length > 0) {
+        this.alert = "\n\n\t     You dont have those tiles... try again.";
+        var lettersValid = false;
+      }
+      return lettersValid;
+    };
+
+
+
+
+    // Switch players and call a new round
+    Game.prototype.finishTurn = function() {
+
+      if (this.turn == "player1") {
+        player = this.p1;
+      }
+      else if (this.turn == "player2") {
+        player = this.p2;
+      }
+
+
       // determine if the word is ok
       if ((this._word.toUpperCase() != "D") && this._word.length > 0) {
         // Switching players if word is good
         if (this.turn == "player1") {
-          score = player.play(word);
-          player.updatePlayerTiles(word);
+          score = player.play(this._word);
+          player.updatePlayerTiles(this._word);
           this.turn = "player2";
           console.log(this.displayBoard(this._word, this._startPosition, this._direction));
         }
         else if (this.turn == "player2") {
-          score = player.play(word);
-          player.updatePlayerTiles(word);
+          score = player.play(this._word);
+          player.updatePlayerTiles(this._word);
           this.turn = "player1";
           console.log( this.displayBoard(this._word, this._startPosition, this._direction) );
         }
@@ -281,6 +398,7 @@ var Player = function(name, tileBagClass = new TileBag()) {
       // var score = this.s1.score(this._word);
       // return [word, startPosition, direction];
     };
+
 
 
 
