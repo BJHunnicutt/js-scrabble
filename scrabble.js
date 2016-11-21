@@ -238,8 +238,6 @@ var Player = function(name, tileBagClass = new TileBag()) {
         // this.firstTurn = false;
       }
       this._startPosition = startPosition;
-      console.log("Word: " + this._word + " Direction: " + this._direction + " startPosition: " + this._startPosition + "\n");
-
       // If the player selected to Quit or Dump tiles
       if (word.toUpperCase() == "Q") {
         return;
@@ -316,7 +314,6 @@ var Player = function(name, tileBagClass = new TileBag()) {
 
 
     Game.prototype.lettersAvailable = function(overlappingTiles) {
-      console.log("overlappingTiles: " + overlappingTiles);
       if (this.turn == "player1") {
         var player = this.p1;
       }
